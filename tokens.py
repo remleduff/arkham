@@ -159,9 +159,9 @@ def run_sim(eval_fn, trials=10000):
 #print(tabulate(results, headers=['Difficulty(curses)', '0 blessings', *range(1,11)]))
 
 
-print('Most frequent success-by or fail-by value for Pendulum:')
-results = run_sim(best_pendulum_guess)
-print(tabulate(results, headers=['Difficulty(curses)', '0 blessings', *range(1,11)]))
+#print('Most frequent success-by or fail-by value for Pendulum:')
+#results = run_sim(best_pendulum_guess)
+#print(tabulate(results, headers=['Difficulty(curses)', '0 blessings', *range(1,11)]))
 
 
 #vals = skill_test()
