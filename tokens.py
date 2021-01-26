@@ -86,11 +86,15 @@ def jacky_target_difficulty_strat(combo, difficulty=-2, bag=bag):
     outcome = list(combo)
 
     blurse = blursed(combo)
+    m = modifiers(combo, ignore=blurses)
     if TENTACLE in combo:
+        # Jacqueline can only cancel the tentacle, which leaves the other two tokens
         outcome.remove(TENTACLE)
-    elif (m := modifiers(combo, ignore=blurses)) and max(m) > difficulty:
+    elif m and max(m) > difficulty:
+        # We can pass the test, cancel the other tokens
         outcome = [max(m)]
     elif blurse:
+        # We can't pass the test, take a blessing or curse, preferring blessings, then resolve
         remaining = list(bag)
         for token in combo:
             remaining.remove(token)
