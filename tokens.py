@@ -38,6 +38,7 @@ bag = [
         ELDERSIGN,
         ]
 
+
 spooky = {
         BLESSING: 2,
         CURSE: -2,
@@ -48,16 +49,27 @@ spooky = {
         HEART: -3,
         }
 
+
 blurses = {BLESSING, CURSE}
 
+
+def modifier(token):
+    if isinstance(token, list):
+        return sum(modifier(t) for t in token)
+    if token == TENTACLE:
+        return float('-inf')
+    return spooky.get(token, token)
+
+
 def modifiers(tokens, ignore={}):
-    return [spooky.get(token, token) for token in tokens if not token in ignore]
+    return [modifier(t) for t in tokens if t not in ignore]
 
 
 def is_blursed(token):
     if isinstance(token, list):
         return BLESSING in token or CURSE in token
-    return token == BLESSING or token == CURSE
+    return token in blurses
+
 
 def blursed(tokens):
     if isinstance(tokens, list):
@@ -68,6 +80,16 @@ def blursed(tokens):
     return None
 
 
+def best_token(tokens, ignore={}):
+    m = [t for t in tokens if t not in ignore]
+    return max(m, key=modifier) if m else float('-inf')
+
+
+def worst_token(tokens, ignore={}):
+    m = [t for t in tokens if t not in ignore]
+    return min(m, key=modifier) if m else float('inf')
+    
+
 def pull_tokens(bag, n):
     tokens = sample(bag, n)
     remaining = list(bag)
@@ -76,10 +98,20 @@ def pull_tokens(bag, n):
     return tokens, remaining
 
 
+def resolve_blurses(tokens, bag=bag):
+    outcome = []
+    for token in tokens:
+        outcome.append(token)
+        if is_blursed(token):
+            t, bag = pull_tokens(bag, 1)
+            tokens += t
+    return outcome
+
+
 def is_success(tokens, difficulty):
     if TENTACLE in tokens:
         return False
-    return sum(modifiers(tokens)) > difficulty
+    return modifier(tokens) > difficulty
 
 
 def monte(strat, bag=bag, trials=10000, **kwargs):
@@ -95,7 +127,7 @@ def success_probability(outcomes, difficulty, trials=10000):
 
 
 def best_pendulum_guess(outcomes, difficulty, trials=10000):
-    success_or_fail_by = [abs(sum(modifiers(outcome)) - difficulty) for outcome in outcomes if TENTACLE not in outcome]
+    success_or_fail_by = [abs(modifier(outcome) - difficulty) for outcome in outcomes if TENTACLE not in outcome]
     return max(set(success_or_fail_by), key=success_or_fail_by.count)
 
 
@@ -121,5 +153,3 @@ def run_sim(eval_fn=null_eval, strat=default_strategy, **kwargs):
             outcomes = monte(strat, bag + [BLESSING] * blessings + [CURSE] * curses, **kwargs)
             results[curses][blessings] = eval_fn(outcomes, **kwargs)
     return results
-
-#run_sim(success_probability, difficulty=-2)
